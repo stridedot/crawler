@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"github.com/antchfx/htmlquery"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -10,10 +12,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"regexp"
 )
-
-var headerRe = regexp.MustCompile(`<div class="blk_main_li.*?">[\s\S]*?<ul.*?>[\s\S]*?<li>[\s\S]*?<a.*?>([\s\S]*?)</a>`)
 
 func main() {
 	url := "https://news.sina.com.cn/"
@@ -23,10 +22,10 @@ func main() {
 		return
 	}
 
-	matches := headerRe.FindAllSubmatch(body, -1)
-
-	for _, m := range matches {
-		fmt.Printf("Fetch title: %s\n", m[1])
+	doc, err := htmlquery.Parse(bytes.NewReader(body))
+	nodes := htmlquery.Find(doc, `//h1[@data-client="headline"]/a[@target="_blank"]`)
+	for _, node := range nodes {
+		fmt.Printf("Fetch title: %s\n", node.FirstChild.Data)
 	}
 }
 
