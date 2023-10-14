@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/antchfx/htmlquery"
+	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -22,11 +22,10 @@ func main() {
 		return
 	}
 
-	doc, err := htmlquery.Parse(bytes.NewReader(body))
-	nodes := htmlquery.Find(doc, `//h1[@data-client="headline"]/a[@target="_blank"]`)
-	for _, node := range nodes {
-		fmt.Printf("Fetch title: %s\n", node.FirstChild.Data)
-	}
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	doc.Find(`h1[data-client="headline"] a[target="_blank"]`).Each(func(i int, s *goquery.Selection) {
+		fmt.Printf("Fetch title: %s\n", s.Text())
+	})
 }
 
 // Fetcher 爬取数据
