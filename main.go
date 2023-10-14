@@ -10,17 +10,24 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 )
 
+var headerRe = regexp.MustCompile(`<div class="blk_main_li.*?">[\s\S]*?<ul.*?>[\s\S]*?<li>[\s\S]*?<a.*?>([\s\S]*?)</a>`)
+
 func main() {
-	url := "https://www.thepaper.cn/"
+	url := "https://news.sina.com.cn/"
 	body, err := Fetcher(url)
 	if err != nil {
 		fmt.Printf("Fetcher error: %v\n", err)
 		return
 	}
 
-	fmt.Println(string(body))
+	matches := headerRe.FindAllSubmatch(body, -1)
+
+	for _, m := range matches {
+		fmt.Printf("Fetch title: %s\n", m[1])
+	}
 }
 
 // Fetcher 爬取数据
