@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 type Fetcher interface {
@@ -17,6 +18,10 @@ type Fetcher interface {
 }
 
 type BaseFetch struct{}
+
+type BrowserFetch struct {
+	Timeout time.Duration
+}
 
 // Get 爬取数据
 func (f *BaseFetch) Get(url string) ([]byte, error) {
@@ -41,14 +46,43 @@ func (f *BaseFetch) Get(url string) ([]byte, error) {
 	return io.ReadAll(utf8Reader)
 }
 
+// Get 通过创建客户端的方式爬取数据
+func (f BrowserFetch) Get(url string) ([]byte, error) {
+	client := http.Client{
+		Timeout: f.Timeout,
+	}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Fetch url error: %v\n", err)
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Fetch url error: %v\n", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Error status code: %v\n", resp.StatusCode)
+	}
+
+	bodyReader := bufio.NewReader(resp.Body)
+	e := DetermineEncoding(bodyReader)
+	utf8Reader := transform.NewReader(bodyReader, e.NewDecoder())
+
+	return io.ReadAll(utf8Reader)
+}
+
 // DetermineEncoding 判断爬取数据的编码
 func DetermineEncoding(r *bufio.Reader) encoding.Encoding {
-	bytes, err := r.Peek(1024)
+	b, err := r.Peek(1024)
 	if err != nil {
 		log.Printf("Fetcher error: %v", err)
 		return unicode.UTF8
 	}
 
-	e, _, _ := charset.DetermineEncoding(bytes, "")
+	e, _, _ := charset.DetermineEncoding(b, "")
 	return e
 }
