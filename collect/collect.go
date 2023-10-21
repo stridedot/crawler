@@ -3,6 +3,7 @@ package collect
 import (
 	"bufio"
 	"fmt"
+	"github.com/stridedot/crawler/proxy"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -21,6 +22,7 @@ type BaseFetch struct{}
 
 type BrowserFetch struct {
 	Timeout time.Duration
+	Proxy   proxy.Func
 }
 
 // Get 爬取数据
@@ -51,6 +53,13 @@ func (f BrowserFetch) Get(url string) ([]byte, error) {
 	client := http.Client{
 		Timeout: f.Timeout,
 	}
+
+	if f.Proxy != nil {
+		transport := http.DefaultTransport.(*http.Transport)
+		transport.Proxy = f.Proxy
+		client.Transport = transport
+	}
+	
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Fetch url error: %v\n", err)

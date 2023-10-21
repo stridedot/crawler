@@ -1,34 +1,40 @@
 package main
 
 import (
-	"context"
+	"bytes"
 	"fmt"
-	"github.com/chromedp/chromedp"
-	"log"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/stridedot/crawler/collect"
+	"github.com/stridedot/crawler/proxy"
 	"time"
 )
 
 func main() {
-	// 1, 创建谷歌浏览器实例
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-	)
-	defer cancel()
-
-	// 2, 设置 context 超时时间
-	ctx, cancel = context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-
-	// 3, 爬取页面，等待某一个元素出现，接着模拟鼠标单机，最后获取数据
-	var example string
-	err := chromedp.Run(ctx,
-		chromedp.Navigate(`https://pkg.go.dev/time`),
-		chromedp.WaitVisible(`body > footer`),
-		chromedp.Click(`#example-After`, chromedp.NodeVisible),
-		chromedp.Value(`#example-After textarea`, &example),
-	)
+	proxyURLs := []string{"http://127.0.0.1:7890", "http://127.0.0.1:8889"}
+	p, err := proxy.RoundRobinProxySwitcher(proxyURLs...)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	fmt.Printf("example: %s\n", example)
+	url := "https://www.baidu.com"
+	var f collect.Fetcher = collect.BrowserFetch{
+		Timeout: 3000 * time.Millisecond,
+		Proxy:   p,
+	}
+	body, err := f.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Println(string(body))
+
+	// 加载HTML文档
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	if err != nil {
+		fmt.Printf("read content failed:%v\n", err)
+	}
+
+	doc.Find("div.news_li h2 a[target=_blank]").Each(func(i int, s *goquery.Selection) {
+		// 获取匹配元素的文本
+		title := s.Text()
+		fmt.Printf("Review %d: %s\n", i, title)
+	})
 }
