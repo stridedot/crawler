@@ -1,4 +1,0 @@
-{"level":"INFO","ts":"2023-10-21T12:00:27.780+0800","caller":"crawler/main.go:16","msg":"log init end"}
-{"level":"INFO","ts":"2023-10-21T12:00:27.903+0800","caller":"crawler/main.go:33","msg":"get content","len":400100}
-{"level":"INFO","ts":"2023-10-21T12:00:57.183+0800","caller":"crawler/main.go:18","msg":"log init end"}
-{"level":"INFO","ts":"2023-10-21T12:00:57.410+0800","caller":"crawler/main.go:35","msg":"get content","len":399925}

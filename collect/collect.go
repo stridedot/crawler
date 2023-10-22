@@ -15,7 +15,7 @@ import (
 )
 
 type Fetcher interface {
-	Get(url string) ([]byte, error)
+	Get(request *Request) ([]byte, error)
 }
 
 type BaseFetch struct{}
@@ -26,8 +26,8 @@ type BrowserFetch struct {
 }
 
 // Get 爬取数据
-func (f *BaseFetch) Get(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+func (f *BaseFetch) Get(request *Request) ([]byte, error) {
+	resp, err := http.Get(request.Url)
 	if err != nil {
 		return nil, fmt.Errorf("Fetch url error: %v\n", err)
 	}
@@ -49,7 +49,7 @@ func (f *BaseFetch) Get(url string) ([]byte, error) {
 }
 
 // Get 通过创建客户端的方式爬取数据
-func (f BrowserFetch) Get(url string) ([]byte, error) {
+func (f BrowserFetch) Get(request *Request) ([]byte, error) {
 	client := http.Client{
 		Timeout: f.Timeout,
 	}
@@ -59,13 +59,14 @@ func (f BrowserFetch) Get(url string) ([]byte, error) {
 		transport.Proxy = f.Proxy
 		client.Transport = transport
 	}
-	
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+
+	req, err := http.NewRequest(http.MethodGet, request.Url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Fetch url error: %v\n", err)
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36")
+	req.Header.Set("Cookie", request.Cookie)
 
 	resp, err := client.Do(req)
 	if err != nil {
