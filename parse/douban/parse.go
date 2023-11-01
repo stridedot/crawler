@@ -7,7 +7,7 @@ import (
 
 const detailUrlPattern = `(https://www.douban.com/group/topic/[0-9a-z]+/)"[^>]*>([^<]+)</a>`
 
-func ParseURL(content []byte) *collect.ParseResult {
+func ParseURL(content []byte, request *collect.Request) *collect.ParseResult {
 	result := &collect.ParseResult{}
 
 	reg := regexp.MustCompile(detailUrlPattern)
@@ -16,8 +16,9 @@ func ParseURL(content []byte) *collect.ParseResult {
 	for _, m := range matches {
 		url := string(m[1])
 		result.Requests = append(result.Requests, &collect.Request{
-			Url: url,
-			ParseFunc: func(c []byte) *collect.ParseResult {
+			Url:    url,
+			Cookie: request.Cookie,
+			ParseFunc: func(c []byte, r *collect.Request) *collect.ParseResult {
 				return GetContent(c, url)
 			},
 		})

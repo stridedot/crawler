@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
+	"os"
 )
 
 // Plugin 是 zapcore.Core 的别名，两者完全相等
@@ -27,4 +28,8 @@ func NewFilePlugin(filepath string, enabler zapcore.LevelEnabler) (Plugin, io.Cl
 	writer := DefaultLumberjackLogger()
 	writer.Filename = filepath
 	return NewPlugin(zapcore.AddSync(writer), enabler), writer
+}
+
+func NewStdoutPlugin(enabler zapcore.LevelEnabler) Plugin {
+	return NewPlugin(zapcore.Lock(zapcore.AddSync(os.Stdout)), enabler)
 }

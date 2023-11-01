@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/stridedot/crawler/proxy"
+	"go.uber.org/zap"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -22,6 +23,7 @@ type BaseFetch struct{}
 
 type BrowserFetch struct {
 	Timeout time.Duration
+	Logger  *zap.Logger
 	Proxy   proxy.Func
 }
 
@@ -69,8 +71,12 @@ func (f BrowserFetch) Get(request *Request) ([]byte, error) {
 	req.Header.Set("Cookie", request.Cookie)
 
 	resp, err := client.Do(req)
+
+	time.Sleep(request.WaitTime)
+
 	if err != nil {
-		return nil, fmt.Errorf("Fetch url error: %v\n", err)
+		f.Logger.Error("fetch failed", zap.Error(err))
+		return nil, err
 	}
 	defer resp.Body.Close()
 
