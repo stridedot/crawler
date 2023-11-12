@@ -24,7 +24,7 @@ func main() {
 	}
 
 	cookie := "bid=zkq031h8Npg; __utmc=30149280; viewed=\"1007305_2089943\"; _pk_id.100001.8cb4=d560630ac0a50e46.1697943282.; douban-fav-remind=1; dbcl2=\"232581024:Ghreifrb9GA\"; ck=MoqN; frodotk_db=\"bd99ee018ffe63bf38cdca04affb2b3d\"; __utmz=30149280.1697956001.5.2.utmcsr=accounts.douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/; push_noty_num=0; push_doumail_num=0; __utmv=30149280.23258; _pk_ses.100001.8cb4=1; ap_v=0,6.0; __utma=30149280.1594306893.1697347189.1698413337.1698444472.13; __utmt=1; __utmb=30149280.38.2.1698444542323"
-	var seeds []*collect.Request
+	var seeds = make([]*collect.Request, 0, 1000)
 	for i := 0; i <= 0; i += 25 {
 		url := "https://www.douban.com/group/szsh/discussion?start=" + strconv.Itoa(i) + "&type=essence"
 		seeds = append(seeds, &collect.Request{
